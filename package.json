@@ -1,6 +1,6 @@
 {
   "name": "t-viewer",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Библиотека для уведомления об ошибках Axios через Telegram-бота",
   "main": "index.ts",
   "type": "module",
