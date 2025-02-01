@@ -33,19 +33,19 @@ class TViewerErrorNotifier {
   private axiosInstance: AxiosInstance;
 
   /**
-   * Конструктор
-   * @param options - Настройки
-   * @param options.botToken - Токен Telegram-бота
-   * @param options.chatId - ID чата или группы в Telegram
-   * @param options.sendAsFile - Отправлять ли сообщения как файлы (по умолчанию: false)
-   * @param options.logFilePath - Путь к файлу для логирования (по умолчанию: './error.log')
+   * Constructor
+   * @param options - Configuration options
+   * @param options.botToken - Telegram bot token
+   * @param options.chatId - Telegram chat or group ID
+   * @param options.sendAsFile - Whether to send messages as files (default: false)
+   * @param options.logFilePath - Path to the log file (default: './error.log')
    */
   constructor({ botToken, chatId, sendAsFile = false, logFilePath = './error.log' }: NotifierOptions) {
     if (!botToken) {
-      throw new Error('botToken обязателен для настройки.');
+      throw new Error('botToken is required.');
     }
     if (!chatId) {
-      throw new Error('chatId обязателен для настройки.');
+      throw new Error('chatId is required.');
     }
 
     this.botToken = botToken;
@@ -65,8 +65,8 @@ class TViewerErrorNotifier {
   }
 
   /**
-   * Обработка ошибки
-   * @param error - Объект ошибки Axios
+   * Handle the error
+   * @param error - Axios error object
    */
   async handleError(error: AxiosError): Promise<void> {
     const { config, response } = error;
@@ -77,9 +77,9 @@ class TViewerErrorNotifier {
       headers: config?.headers || {},
       params: config?.params || {},
       data: config?.data || {},
-      status: response ? response.status : 'Нет ответа',
-      statusText: response ? response.statusText : 'Нет ответа',
-      responseData: response ? response.data : 'Нет ответа',
+      status: response ? response.status : 'No response',
+      statusText: response ? response.statusText : 'No response',
+      responseData: response ? response.data : 'No response',
     };
 
     if (this.sendAsFile) {
@@ -92,27 +92,27 @@ class TViewerErrorNotifier {
   }
 
   /**
-   * Форматирование и отправка сообщения об ошибке в Telegram
-   * @param errorDetails - Детали ошибки
+   * Format and send the error message to Telegram
+   * @param errorDetails - Error details
    */
   async sendErrorMessage(errorDetails: ErrorDetails): Promise<void> {
-    const message = `*Ошибка при запросе к API*\n\n` +
+    const message = `*Error while requesting the API*\n\n` +
       `*URL:* ${errorDetails.url}\n` +
-      `*Метод:* ${errorDetails.method}\n` +
-      `*Статус:* ${errorDetails.status} ${errorDetails.statusText}\n\n` +
-      `*Запрос:* \`\`\`json\n${JSON.stringify({
+      `*Method:* ${errorDetails.method}\n` +
+      `*Status:* ${errorDetails.status} ${errorDetails.statusText}\n\n` +
+      `*Request:* \`\`\`json\n${JSON.stringify({
         headers: errorDetails.headers,
         params: errorDetails.params,
         data: errorDetails.data,
       }, null, 2)}\n\`\`\`\n\n` +
-      `*Ответ:* \`\`\`json\n${JSON.stringify(errorDetails.responseData, null, 2)}\n\`\`\``;
+      `*Response:* \`\`\`json\n${JSON.stringify(errorDetails.responseData, null, 2)}\n\`\`\``;
 
     await this.sendTelegramMessage(message);
   }
 
   /**
-   * Отправка текстового сообщения в Telegram
-   * @param message - Текст сообщения
+   * Send a text message to Telegram
+   * @param message - Message text
    */
   async sendTelegramMessage(message: string): Promise<void> {
     const url = `https://api.telegram.org/bot${this.botToken}/sendMessage`;
@@ -124,13 +124,13 @@ class TViewerErrorNotifier {
         parse_mode: 'Markdown',
       });
     } catch (error) {
-      console.error('Ошибка при отправке сообщения в Telegram:', error);
+      console.error('Error while sending message to Telegram:', error);
     }
   }
 
   /**
-   * Отправка ошибки как файла в Telegram
-   * @param errorDetails - Детали ошибки
+   * Send the error as a file in Telegram
+   * @param errorDetails - Error details
    */
   async sendErrorAsFile(errorDetails: ErrorDetails): Promise<void> {
     const jsonContent = JSON.stringify({
@@ -152,22 +152,22 @@ class TViewerErrorNotifier {
     const formData = new FormData();
     formData.append('chat_id', this.chatId);
     formData.append('document', fs.createReadStream(filePath));
-    formData.append('caption', 'Произошла ошибка при запросе к API');
+    formData.append('caption', 'An error occurred while requesting the API');
 
     try {
       await axios.post(url, formData, {
         headers: formData.getHeaders(),
       });
     } catch (error) {
-      console.error('Ошибка при отправке файла в Telegram:', error);
+      console.error('Error while sending file to Telegram:', error);
     } finally {
-      fs.unlinkSync(filePath); // Удаляем файл после отправки
+      fs.unlinkSync(filePath); // Delete the file after sending
     }
   }
 
   /**
-   * Локальное логирование ошибки
-   * @param errorDetails - Детали ошибки
+   * Local error logging
+   * @param errorDetails - Error details
    */
   logError(errorDetails: ErrorDetails): void {
     const logEntry = `[${new Date().toISOString()}] ${errorDetails.method.toUpperCase()} ${errorDetails.url} - Status: ${errorDetails.status}\n` +
@@ -176,13 +176,13 @@ class TViewerErrorNotifier {
 
     fs.appendFile(this.logFilePath, logEntry, (err) => {
       if (err) {
-        console.error('Ошибка при записи в лог файл:', err);
+        console.error('Error writing to the log file:', err);
       }
     });
   }
 
   /**
-   * Получение настроенного экземпляра Axios
+   * Get the configured Axios instance
    * @returns {AxiosInstance}
    */
   getAxiosInstance(): AxiosInstance {
